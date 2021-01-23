@@ -8,7 +8,10 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.HardwareDevice;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Hardware;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -16,9 +19,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
-@Autonomous
-@Disabled
-public class Drivetrain extends LinearOpMode {
+
+public class Drivetrain{
     static final double     COUNTS_PER_MOTOR_REV    = 537.6 ;    // eg: GoBilda (19.2:1 Ratio) Motor
     static final double     DRIVE_GEAR_REDUCTION    = 1.0 ;     // 1:1 gear ration on GoBilda Mecanum Chassis
     static final double     WHEEL_DIAMETER_INCHES   = 3.77953 ;     // Diameter of GoBilda Mecanum (96mm - 3.77953 in)
@@ -31,46 +33,31 @@ public class Drivetrain extends LinearOpMode {
     static final double     P_TURN_COEFF            = 0.1;     // Larger is more responsive, but also less stable
     static final double     P_DRIVE_COEFF           = 0.15;     // Larger is more responsive, but also less stable0
 
-    public String frontRightName;
-    public String frontLeftName;
-    public String backRightName;
-    public String backLeftName;
-
     DcMotor FrontRight;
     DcMotor FrontLeft;
     DcMotor BackRight;
     DcMotor BackLeft;
-
     BNO055IMU imu;
 
-    public Drivetrain(String FR, String FL, String BR, String BL){
-        this.frontRightName = FR;
-        this.frontLeftName = FL;
-        this.backRightName = BR;
-        this.backLeftName = BL;
+    public Drivetrain(HardwareMap devices){
+        this.FrontRight = devices.get(DcMotor.class, "right_drive_front");
+        this.FrontLeft = devices.get(DcMotor.class,"left_drive_front");
+        this.BackRight = devices.get(DcMotor.class, "right_drive_back");
+        this.BackLeft = devices.get(DcMotor.class, "left_drive_back");
 
-        this.runOpMode();
-    }
+        this.FrontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        this.BackRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        this.BackLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        this.FrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        this.FrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        this.BackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        this.BackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-    @Override
-    public void runOpMode() {
-        FrontRight = hardwareMap.get(DcMotor.class, frontRightName);
-        FrontLeft = hardwareMap.get(DcMotor.class, frontLeftName);
-        BackRight = hardwareMap.get(DcMotor.class, backRightName);
-        BackLeft = hardwareMap.get(DcMotor.class, backLeftName);
-
-        FrontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        BackRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        BackLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        FrontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        FrontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        BackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        BackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
+        this.imu = devices.get(BNO055IMU.class, "imu");
         initializeIMU();
     }
+
 
     public void driveInches (int inches, double speed){
         int target = inches * (int)COUNTS_PER_INCH;
@@ -89,7 +76,7 @@ public class Drivetrain extends LinearOpMode {
         BackRight.setPower(speed);
         BackLeft.setPower(speed);
 
-        waitUntilDone();
+        //waitUntilDone();
     }
 
     public void turnToAngle (int angle, double speed){
@@ -105,7 +92,7 @@ public class Drivetrain extends LinearOpMode {
             BackRight.setPower(-speed);
 
             while(yaw < targetAngle){
-                sleep(50);
+                //sleep(50);
                 yaw = angles.firstAngle;
             }
 
@@ -123,7 +110,7 @@ public class Drivetrain extends LinearOpMode {
             BackRight.setPower(speed);
 
             while(yaw > targetAngle){
-                sleep(50);
+                //sleep(50);
                 yaw = angles.firstAngle;
             }
 
@@ -150,13 +137,12 @@ public class Drivetrain extends LinearOpMode {
         // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
         // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
         // and named "imu".
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
-        imu.initialize(parameters);
+        this.imu.initialize(parameters);
     }
 
-    public void waitUntilDone(){
-        while(BackLeft.isBusy() || BackRight.isBusy() || FrontRight.isBusy() || FrontLeft.isBusy()){
-            sleep(50);
-        }
-    }
+    //public void waitUntilDone(){
+        //while(BackLeft.isBusy() || BackRight.isBusy() || FrontRight.isBusy() || FrontLeft.isBusy()){
+            //sleep(50);
+        //}
+    //}
 }
